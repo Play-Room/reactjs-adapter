@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PlayRoom React Adapter - Inline CDN Example</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+
+      .app {
+        max-width: 1100px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 0.55rem 0.8rem;
+        background: #0f766e;
+        color: #ffffff;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      #playroom-browser {
+        min-height: 70vh;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19?dev",
+          "react-dom/client": "https://esm.sh/react-dom@19/client?dev",
+          "@play-room/core": "https://cdn.jsdelivr.net/npm/@play-room/core@0.1.2/dist/index.js",
+          "@play-room/quizz": "https://cdn.jsdelivr.net/npm/@play-room/quizz@0.1.2/dist/index.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="module">
+      import React, { useEffect, useMemo, useState } from "react";
+      import { createRoot } from "react-dom/client";
+      import { createPlayRoom } from "../dist/index.js";
+
+      function App() {
+        const roomApi = useMemo(
+          () =>
+            createPlayRoom({
+              browserStartMode: "inline",
+              launcher: { mode: "inline" },
+              persistence: { enabled: false }
+            }),
+          []
+        );
+
+        const [ready, setReady] = useState(false);
+
+        useEffect(() => {
+          roomApi.registerDefaultGames({
+            config: {
+              quizz: {
+                limit: 5,
+                leaderboardLimit: 15
+              }
+            }
+          });
+
+          const container = document.getElementById("playroom-browser");
+          if (container) {
+            roomApi.renderGamePicker(container);
+            setReady(true);
+          }
+        }, [roomApi]);
+
+        return React.createElement(
+          "main",
+          { className: "app" },
+          React.createElement("h1", null, "PlayRoom React Adapter (Inline)"),
+          React.createElement(
+            "div",
+            { className: "toolbar" },
+            React.createElement(
+              "button",
+              { disabled: !ready, onClick: () => roomApi.setLocale("en") },
+              "English"
+            ),
+            React.createElement(
+              "button",
+              { disabled: !ready, onClick: () => roomApi.setLocale("sr") },
+              "Srpski"
+            ),
+            React.createElement(
+              "button",
+              { disabled: !ready, onClick: () => roomApi.setTheme("light") },
+              "Light"
+            ),
+            React.createElement(
+              "button",
+              { disabled: !ready, onClick: () => roomApi.setTheme("dark") },
+              "Dark"
+            )
+          ),
+          React.createElement("div", { id: "playroom-browser" })
+        );
+      }
+
+      const root = createRoot(document.getElementById("app"));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
